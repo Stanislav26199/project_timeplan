@@ -1,0 +1,198 @@
+<ng4-loading-spinner></ng4-loading-spinner>
+
+<div class="container">
+  <div class="row" *ngIf="show_alert_del || show_alert_suc">
+    <div class="col-12">
+      <alert *ngIf="show_alert_del" [type]="'danger'" [dismissible]="true"
+             (onClosed)="closeAlert()">{{(studentTad.className.includes('active') ? 'Студент' : 'Преподаватель') + delete_message}}</alert>
+      <alert *ngIf="show_alert_suc" [type]="'success'" [dismissible]="true"
+             (onClosed)="closeAlert()">{{(studentTad.className.includes('active') ? 'Студент' : 'Преподаватель') + create_message}}</alert>
+    </div>
+  </div>
+  <div class="row" id="buttons">
+    <div class="col-12">
+      <tabset [justified]="true">
+        <tab heading="Студенты"  #studentTad (select)="closeAlert()">
+          <div class="container mt-3">
+            <div class="row">
+              <div class="col-12">
+                <h1 class="display-4" *ngIf="students?.length == 0">Пока в системе нет студентов. Вы можете их
+                  добавить!</h1>
+                <table class="table table-hover" *ngIf="students?.length > 0 ">
+                  <thead class="thead-dark">
+                  <tr>
+                    <th>Id</th>
+                    <th scope="col" class="fns">Имя</th>
+                    <th scope="col" class="lns">Фамилия</th>
+                    <th scope="col" class="email">Почта</th>
+                    <th scope="col" class="group">Группа</th>
+                    <th>Удалить</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let student of students">
+                    <td>{{student.idstudent}}</td>
+                    <td scope="col">{{student.fname}}</td>
+                    <td scope="col">{{student.lname}}</td>
+                    <td scope="col">{{student.email}}</td>
+                    <td>{{student.group == null ? "Неопределена" : student.group.name}}</td>
+                    <td>
+                      <button class="btn btn-danger" type="button" (click)="deleteStudent(student.idstudent)">
+                        Удалить
+                      </button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-4">
+                <button class="btn btn-dark mr-2" type="button" (click)="openStudentModal(createStudent)">Создать студента
+                </button>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-12">
+                <ul class="nav nav-pills ">
+                  <li class="nav-item" *ngFor="let p of pages">
+                    <a class="nav-link" (click)="setPage(p)" [ngClass]="{'active': p == page}">{{p + 1}}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </tab>
+        <tab heading="Преподаватели" (select)="closeAlert()">
+          <div class="container mt-3">
+            <div class="row">
+              <div class="col-12">
+                <h1 class="display-4" *ngIf="teachers?.length == 0">Пока в системе нет преподавателей. Вы можете их добавить!</h1>
+                <table class="table table-hover" *ngIf="teachers?.length > 0">
+                  <thead class="thead-dark">
+                  <tr>
+                    <th>Id</th>
+                    <th scope="col" class="fnt">Имя</th>
+                    <th scope="col" class="lnt">Фамилия</th>
+                    <th scope="col" class="emailt">Почта</th>
+                    <th scope="col" class="level">Степень</th>
+                    <th>Удалить</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let teacher of teachers" [tooltip]="displayTeacherSubjects(teacher)" [delay]="1000"
+                      placement="left">
+                    <td scope="col">{{teacher.idteacher}}</td>
+                    <td scope="col">{{teacher.fname}}</td>
+                    <td scope="col">{{teacher.lname}}</td>
+                    <td scope="col">{{teacher.email}}</td>
+                    <td scope="col">{{teacher.level}}</td>
+                    <td>
+                      <button class="btn btn-danger" type="button" (click)="deleteTeacher(teacher.idteacher)">Удалить
+                      </button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-4">
+                <button class="btn btn-dark mr-2" type="button"  (click)="openTeacherModal(createTeacher)">Создать
+                  преподавателя
+                </button>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-12">
+                <ul class="nav nav-pills ">
+                  <li class="nav-item" *ngFor="let p of pages1">
+                    <a class="nav-link" (click)="setPage1(p)" [ngClass]="{'active': p == page1}">{{p + 1}}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </tab>
+      </tabset>
+    </div>
+  </div>
+</div>
+
+<!--Create new Student-->
+<ng-template #createStudent>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Создать студента</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="closeModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="studentForm">
+      <div class="form-group">
+        <label>Имя</label>
+        <input class="form-control" formControlName="fname" [(ngModel)]="create_student.fname"/>
+      </div>
+      <div class="form-group">
+        <label>Фамилия</label>
+        <input class="form-control" formControlName="lname" [(ngModel)]="create_student.lname"/>
+      </div>
+
+      <div class="form-group">
+        <label>E-mail</label>
+        <input class="form-control" formControlName="email" [(ngModel)]="create_student.email"/>
+      </div>
+      <div class="form-group">
+        <label>Пароль</label>
+        <input class="form-control" formControlName="password" [(ngModel)]="create_student.password" type="password"/>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default" (click)="addStudent() ">Create</button>
+  </div>
+</ng-template>
+<!--Create new Teacher-->
+<ng-template #createTeacher>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Создать преподавателя</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="closeModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="teacherForm">
+      <div class="form-group">
+        <label>Имя</label>
+        <input class="form-control" formControlName="fname" [(ngModel)]="create_teacher.fname"/>
+      </div>
+      <div class="form-group">
+        <label>Фамилия</label>
+        <input class="form-control" formControlName="lname" [(ngModel)]="create_teacher.lname"/>
+      </div>
+      <div class="form-group">
+        <label>Степень</label>
+        <select id="inputLevel" class="form-control" formControlName="level" [(ngModel)]="create_teacher.level">
+          <option *ngFor="let level of level_list" [value]="level" >{{level}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Дисциплина</label><br>
+        <select class="form-control" formControlName="subjects" multiple>
+          <option *ngFor="let subject of subjects">{{subject.name}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input class="form-control" formControlName="email" [(ngModel)]="create_teacher.email"/>
+      </div>
+      <div class="form-group">
+        <label>Пароль</label>
+        <input class="form-control" formControlName="password" type="password" [(ngModel)]="create_teacher.password"/>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default" (click)="addTeacher()">Создать</button>
+  </div>
+</ng-template>
